@@ -1,9 +1,23 @@
+#include <iostream>
+#include <pthread.h>
+#include <unistd.h>
 #include "libobsensor/ObSensor.hpp"
 #include "opencv2/opencv.hpp"
-#include <iostream>
 #include "libobsensor/conio.h"
-
 #define KEY_ESC 27
+
+/* debug printf*/
+#define DEBUG 1
+#if DEBUG
+#define os_printf(format, ...) \
+	{printf("[%s : %s : %d] ", \
+	__FILE__, __func__, __LINE__); \
+	printf(format, ##__VA_ARGS__);}
+#else
+#define os_printf(format, ...) 
+#endif
+
+typedef void *(*func_cb)(void * argv);
 
 // 保存深度图为png格式
 void saveDepth(std::shared_ptr<ob::DepthFrame> depthFrame) {
@@ -133,4 +147,135 @@ int main(int argc, char **argv) try {
 catch(ob::Error &e) {
     std::cerr << "function:" << e.getName() << "\nargs:" << e.getArgs() << "\nmessage:" << e.getMessage() << "\ntype:" << e.getExceptionType() << std::endl;
     return EXIT_FAILURE;
+}
+
+typedef struct orbbec_str {
+	ob::Pipeline pipeline;
+	std::shared_ptr<ob::Config> config;
+	bool rgb_flag;
+	bool depth_flag;
+	func_cb rgb_cb;
+	func_cb depth_cb;
+	double rgb_count;
+	double depth_count;
+	ob::FormatConvertFilter formatConverFilter;
+} orbbec_str;
+
+int rgbd_init(orbbec_str ** entity, func_cb rgb, func_cb depth)
+{
+	int retval = 0;
+	(*entity)->config = std::make_shared<ob::Config>();
+	if ((rgb == NULL) && ((depth == NULL))) {
+		std::cer << "rgb || depth must have callback" << std::endl;
+		retvla = -1;
+	}
+	(*entity)->rgb_cb = rgb;
+	(*entity)->depth_cb = rgb;
+	return retval;
+}
+
+/*OB_SENSOR_COLOR/OB_SENSOR_DEPTH*/
+int rgbd_func_set(int which_func, int is_enable)
+{
+	int retval = 0;
+	if (entity != NULL) {
+		if (OB_SENSOR_COLOR == which_func) {
+			try {
+			    auto colorProfiles = pipeline.getStreamProfileList(OB_SENSOR_COLOR);
+			    std::shared_ptr<ob::VideoStreamProfile> colorProfile  = nullptr;
+			    if (colorProfiles) {
+			        colorProfile = std::const_pointer_cast<ob::StreamProfile>(colorProfiles->getProfile(0))->as<ob::VideoStreamProfile>();
+			    }
+			    if (is_enable == 1)
+			    	entity->config->enableStream(colorProfile);
+			    else
+			    	entity->config->disableStream(colorProfile);
+			}
+			catch(ob::Error &e) {
+			    colorCount = -1;
+			    std::cerr << "Current device is not support color sensor!" << std::endl;
+			    retval = -1;
+			}
+		} else {
+			auto  depthProfiles = pipeline.getStreamProfileList(OB_SENSOR_DEPTH);
+			std::shared_ptr<ob::VideoStreamProfile> depthProfile  = nullptr;
+			if (depthProfiles) {
+			    depthProfile = std::const_pointer_cast<ob::StreamProfile>(depthProfiles->getProfile(0))->as<ob::VideoStreamProfile>();
+			}
+			if (is_enable == 1)
+				entity->config->enableStream(depthProfile);
+			else 
+				entity->config->disableStream(depthProfile);
+		}
+	}	
+	return retval;
+
+}
+
+
+int rgb_start(orbbec_str * entity)
+{
+	int retval = 0;
+	if (entity != NULL) {
+		retval = rgbd_func_set(OB_SENSOR_COLOR, 1);
+	}
+	return retval;
+}
+
+int depth_start(orbbec_str * entity)
+{
+	int retval = 0;
+	if (entity != NULL) {
+		retval = rgbd_func_set(OB_SENSOR_DEPTH, 1);
+	}
+	return retval;
+}
+
+int rgb_stop(orbbec_str * entity)
+{
+	int retval = 0;
+	if (entity != NULL) {
+		retval = rgbd_func_set(OB_SENSOR_COLOR, 0);
+	}
+	return retval;
+
+}
+int depth_stop(orbbec_str * entity)
+{
+	int retval = 0;
+	if (entity != NULL) {
+		retval = rgbd_func_set(OB_SENSOR_DEPTH, 0);
+	}
+	return retval;
+}
+
+vid * func_rgbd(void * argv)
+{
+	orbbec_str * entity = (orbbec_str *)argv;
+	while (1) {
+
+	}
+}
+
+int orbber_run(orbbec_str * entity)
+{
+	int retval = 0;
+	pthread_t task;
+	retval = pthread_create(&task, NULL, func_rgbd, entity);
+	return retval;
+}
+
+int main()
+{
+	struct orbbec_str * entity;
+	rgbd_init(&entity, func_cb rgb, func_cb depth);
+	rgb_start(entity);
+	depth_start(entity);
+	orbber_run(entity);
+	while (1){
+		sleep(10);
+	};
+	rgb_stop(entity);
+	depth_stop(entity);
+	rgbd_deinit(entity);
 }
