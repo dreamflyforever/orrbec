@@ -87,7 +87,6 @@ int rgbd_func_set(orbbec_str * entity, int which_func, int is_enable)
 	if (entity != NULL) {
 		if (OB_SENSOR_COLOR == which_func) {
 			try {
-				os_printf("%p\n", &(entity->pipeline));
 				auto colorProfiles = (entity->pipeline).getStreamProfileList(OB_SENSOR_COLOR);
 				std::shared_ptr<ob::VideoStreamProfile> colorProfile  = nullptr;
 				if (colorProfiles) {
@@ -232,6 +231,7 @@ int orbber_run(orbbec_str * entity)
 	return retval;
 }
 
+/*user API*/
 void * rgb_cb(void * argv)
 {
 	os_printf("color picture handle\n");
@@ -240,6 +240,7 @@ void * rgb_cb(void * argv)
 	return NULL;
 }
 
+/*user API*/
 void * depth_cb(void * argv)
 {
 	os_printf("depth picture handle\n");
@@ -252,7 +253,6 @@ int main()
 {
 	orbbec_str * entity;
 	rgbd_init(&entity, rgb_cb, depth_cb);
-	os_printf("%p\n", &(entity->pipeline));
 	rgb_start(entity);
 	depth_start(entity);
 	orbber_run(entity);
