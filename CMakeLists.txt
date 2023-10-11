@@ -3,8 +3,7 @@
 cmake_minimum_required(VERSION 3.1.15)
 project(orbbec)
 
-#add_executable(orbbec example.cpp core.cpp)
-add_executable(orbbec core.cpp)
+add_executable(orbbec core.cpp example.cpp )
 find_package(OpenCV)
 include_directories(${OpenCV_INCLUDE_DIRS})
 #set_property(TARGET orbbec PROPERTY CXX_STANDARD 11)
