@@ -1,23 +1,6 @@
-#include <iostream>
-#include <pthread.h>
-#include <unistd.h>
-#include "libobsensor/ObSensor.hpp"
-#include "opencv2/opencv.hpp"
-#include "libobsensor/conio.h"
+#include "core.hpp"
+
 #define KEY_ESC 27
-
-/* debug printf*/
-#define DEBUG 1
-#if DEBUG
-#define os_printf(format, ...) \
-	{printf("[%s : %s : %d] ", \
-	__FILE__, __func__, __LINE__); \
-	printf(format, ##__VA_ARGS__);}
-#else
-#define os_printf(format, ...) 
-#endif
-
-typedef void *(*func_cb)(void * argv);
 
 // 保存深度图为png格式
 void saveDepth(std::shared_ptr<ob::DepthFrame> depthFrame) {
@@ -44,19 +27,6 @@ void saveColor(std::shared_ptr<ob::ColorFrame> colorFrame) {
     cv::imwrite(colorName, colorRawMat, compression_params);
     std::cout << "Color saved:" << colorName << std::endl;
 }
-
-typedef struct orbbec_str {
-	ob::Pipeline pipeline;
-	std::shared_ptr<ob::Config> config;
-	//ob::Config * config;
-	bool rgb_flag;
-	bool depth_flag;
-	func_cb rgb_cb;
-	func_cb depth_cb;
-	double rgb_count;
-	double depth_count;
-	ob::FormatConvertFilter formatConverFilter;
-} orbbec_str;
 
 /*TODO:XXX*/
 ob::Pipeline pipeline;
