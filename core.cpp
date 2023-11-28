@@ -169,7 +169,6 @@ void * rgbd_runtime(void * argv)
 				std::cout << "Color format is not support!" << std::endl;
 				continue;
 			}
-			colorFrame = entity->formatConverFilter.process(colorFrame)->as<ob::ColorFrame>();
 			entity->formatConverFilter.setFormatConvertType(FORMAT_RGB888_TO_BGR);
 			colorFrame = entity->formatConverFilter.process(colorFrame)->as<ob::ColorFrame>();
 			if (entity->rgb_cb != NULL)
